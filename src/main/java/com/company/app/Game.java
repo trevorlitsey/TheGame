@@ -10,32 +10,31 @@ public class Game {
 
     private ArrayList<Integer> hand = new ArrayList<>(8);
 
-    private Outcome outcome;
-
     public Game() {
         initDeck();
         initDiscardPiles();
     }
 
     public Result playGame() {
-        while (outcome != Outcome.LOSE) {
+        Outcome outcome;
+
+        while (true) {
             drawCards();
 
-            boolean didTakeTurn = takeTurn();
+            boolean failedToPlayCard = takeTurn();
 
-            if (!didTakeTurn) {
+            if (failedToPlayCard) {
+                // lose!
                 outcome = Outcome.LOSE;
                 break;
-            }
-
-            if (hand.size() <= 6 && deck.size() > 0) {
-                drawCards();
             }
 
             if (hand.size() == 0 && deck.size() == 0) {
                 // win!
                 outcome = Outcome.WIN;
                 break;
+            } else if (hand.size() <= 6 && deck.size() > 0) {
+                drawCards();
             }
         }
 
@@ -66,14 +65,14 @@ public class Game {
     }
 
     private boolean takeTurn() {
-        boolean didPlayCard = false;
+        boolean failedToPlayCard = false;
         for (int i = 0; i < 2; i++) {
             CardReport bestPlayPossible = findBestPlayPossible();
 
             if (bestPlayPossible == null) {
-                outcome = Outcome.LOSE;
+                failedToPlayCard = true;
+                break;
             } else {
-                didPlayCard = true;
                 playCard(bestPlayPossible);
             }
 
@@ -83,7 +82,7 @@ public class Game {
             }
         }
 
-        return didPlayCard;
+        return failedToPlayCard;
     }
 
     private void playCard(CardReport bestPlayPossible) {

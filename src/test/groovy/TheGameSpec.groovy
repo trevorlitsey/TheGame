@@ -1,6 +1,7 @@
 import com.company.app.Direction
 import com.company.app.DiscardPile
 import com.company.app.Game
+import com.company.app.Outcome
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -93,7 +94,18 @@ class TheGameSpec extends Specification {
     }
 
     def "test findBestPlayPossible - no play found"() {
-        // TODO
+        when:
+        def game = new Game()
+        game.hand = List.of(10, 90)
+        def discardPile1 = new DiscardPile(Direction.UP)
+        discardPile1.discard(95)
+        def discardPile2 = new DiscardPile(Direction.DOWN)
+        discardPile2.discard(5)
+        game.discardPiles = ArrayList.of(discardPile1, discardPile2)
+        def bestPlayPossible = game.findBestPlayPossible()
+
+        then:
+        bestPlayPossible == null
     }
 
     def "test takeTurn when more than one card left in deck"() {
@@ -160,7 +172,61 @@ class TheGameSpec extends Specification {
         game.discardPiles.get(1).cards.size() == 2
     }
 
-    def "test playGame"() {
-        // TODO
+    def "test playGame - win"() {
+        setup:
+        def result
+        def game = new Game()
+        game.hand = List.of(42, 43, 45, 46, 47, 48, 49, 50)
+        game.deck = List.of(95, 94, 53, 52, 51)
+        def discardPile1 = new DiscardPile(Direction.UP)
+        discardPile1.discard(30)
+        def discardPile2 = new DiscardPile(Direction.DOWN)
+        discardPile2.discard(98)
+        game.discardPiles = List.of(discardPile1, discardPile2)
+
+        def expectedDiscardPile1 = new DiscardPile(Direction.UP)
+        expectedDiscardPile1.cards = List.of(1, 30, 42, 43, 45, 46, 47, 48, 49, 50, 51, 52, 53)
+        def expectedDiscardPile2 = new DiscardPile(Direction.DOWN)
+        expectedDiscardPile2.cards = List.of(100, 98, 95, 94)
+
+        when:
+        result = game.playGame()
+
+        then:
+        result.outcome == Outcome.WIN
+        result.cardsLeft == 0
+        game.hand.size() == 0
+        game.deck.size() == 0
+        game.discardPiles[0].cards == expectedDiscardPile1.cards
+        game.discardPiles[1].cards == expectedDiscardPile2.cards
+    }
+
+    def "test playGame - lose"() {
+        setup:
+        def result
+        def game = new Game()
+        game.hand = List.of(14, 16, 17, 18, 19, 20, 21, 22)
+        game.deck = List.of(11, 12)
+        def discardPile1 = new DiscardPile(Direction.UP)
+        discardPile1.discard(90)
+        def discardPile2 = new DiscardPile(Direction.DOWN)
+        discardPile2.discard(15)
+        game.discardPiles = List.of(discardPile1, discardPile2)
+
+        def expectedDiscardPile1 = new DiscardPile(Direction.UP)
+        expectedDiscardPile1.cards = List.of(1, 90)
+        def expectedDiscardPile2 = new DiscardPile(Direction.DOWN)
+        expectedDiscardPile2.cards = List.of(100, 15, 14)
+
+        when:
+        result = game.playGame()
+
+        then:
+        result.outcome == Outcome.LOSE
+        result.cardsLeft == 9
+        game.hand == List.of(16, 17, 18, 19, 20, 21, 22)
+        game.deck == List.of(11, 12)
+        game.discardPiles[0].cards == expectedDiscardPile1.cards
+        game.discardPiles[1].cards == expectedDiscardPile2.cards
     }
 }
