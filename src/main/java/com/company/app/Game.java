@@ -131,6 +131,7 @@ public class Game {
         // 2. small interval possible (in either direction - no preference)
 
         // left to consider
+        // can the current card be used as a reverse card in a later play? are there any cards in-between those two cards?
         // proximity to outer edges?
         // total cards playable in a cluster?
 
@@ -142,7 +143,12 @@ public class Game {
                     howClose = hand.get(i) - cardToGetCloseTo;
                     isReverse = true;
                     break;
-                } else if (card > cardToGetCloseTo && (indexOfClosestCardFound == -1 || card < hand.get(indexOfClosestCardFound))) {
+                } else if (
+                        card > cardToGetCloseTo &&
+                                (indexOfClosestCardFound == -1 ||
+                                        (card < hand.get(indexOfClosestCardFound) && !hand.contains(card + 10))
+                                )
+                ) {
                     indexOfClosestCardFound = i;
                     howClose = hand.get(i) - cardToGetCloseTo;
                 }
@@ -152,7 +158,11 @@ public class Game {
                     howClose = hand.get(i) - cardToGetCloseTo;
                     isReverse = true;
                     break;
-                } else if (card < cardToGetCloseTo && (indexOfClosestCardFound == -1 || card > hand.get(indexOfClosestCardFound))) {
+                } else if (card < cardToGetCloseTo &&
+                        (indexOfClosestCardFound == -1 ||
+                                (card > hand.get(indexOfClosestCardFound) && !hand.contains(card - 10))
+                        )
+                ) {
                     indexOfClosestCardFound = i;
                     howClose = cardToGetCloseTo - hand.get(i);
                 }

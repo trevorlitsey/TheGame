@@ -81,16 +81,18 @@ class TheGameSpec extends Specification {
         bestPlayPossible.getClosestTo() == expectedDeckIndexClosestTo
 
         where:
-        scenario                                                | hand               | cardOnTop1 | cardOnTop2 | expectedCardIndex | expectedDeckIndexClosestTo
-        "closest card to UP - card in asc order"                | List.of(5, 10)     | 1          | 100        | 0                 | 0
-        "closest card to UP - card in desc order"               | List.of(10, 5)     | 1          | 100        | 1                 | 0
-        "closest card to DOWN - card in desc order"             | List.of(98, 92)    | 1          | 100        | 0                 | 1
-        "closest card to DOWN - card in asc order"              | List.of(92, 98)    | 1          | 100        | 1                 | 1
-        "reverse on UP - choose over closest card to UP"        | List.of(21, 10)    | 20         | 100        | 1                 | 0
-        "reverse on DOWN - choose over closest card to DOWN"    | List.of(90, 79)    | 20         | 80         | 0                 | 1
-        "reverse on UP - choose over closest card to DOWN"      | List.of(98, 10)    | 20         | 99         | 1                 | 0
-        "reverse on DOWN - choose over closest card to UP"      | List.of(90, 11)    | 10         | 80         | 0                 | 1
-        "closest to UP - choose card less than reverse plus 10" | List.of(12, 6, 16) | 11         | 80         | 0                 | 0
+        scenario                                                                                             | hand               | cardOnTop1 | cardOnTop2 | expectedCardIndex | expectedDeckIndexClosestTo
+        "closest card to UP - card in asc order"                                                             | List.of(5, 10)     | 1          | 100        | 0                 | 0
+        "closest card to UP - card in desc order"                                                            | List.of(10, 5)     | 1          | 100        | 1                 | 0
+        "closest card to DOWN - card in desc order"                                                          | List.of(98, 92)    | 1          | 100        | 0                 | 1
+        "closest card to DOWN - card in asc order"                                                           | List.of(92, 98)    | 1          | 100        | 1                 | 1
+        "reverse on UP - choose over closest card to UP"                                                     | List.of(21, 10)    | 20         | 100        | 1                 | 0
+        "reverse on DOWN - choose over closest card to DOWN"                                                 | List.of(90, 79)    | 20         | 80         | 0                 | 1
+        "reverse on UP - choose over closest card to DOWN"                                                   | List.of(98, 10)    | 20         | 99         | 1                 | 0
+        "reverse on DOWN - choose over closest card to UP"                                                   | List.of(90, 11)    | 10         | 80         | 0                 | 1
+        "closest to UP - choose card less than reverse plus 10"                                              | List.of(12, 6, 16) | 11         | 80         | 0                 | 0
+        "closest to UP - choose next card after closest if closest can be used as reverse in a later turn"   | List.of(12, 6, 16) | 5          | 80         | 0                 | 0
+        "closest to DOWN - choose next card after closest if closest can be used as reverse in a later turn" | List.of(6, 12, 16) | 30         | 20         | 1                 | 1
     }
 
     def "test findBestPlayPossible - no play found"() {
