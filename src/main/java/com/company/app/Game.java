@@ -8,35 +8,24 @@ public class Game {
 
     private ArrayList<Integer> deck;
 
-    private ArrayList<Integer> hand = new ArrayList<>(0);
+    private ArrayList<Integer> hand = new ArrayList<>(8);
 
     private Outcome outcome;
 
     public Game() {
-        prepareDeck();
+        initDeck();
         initDiscardPiles();
-        initHand();
     }
 
     public Result playGame() {
         while (outcome != Outcome.LOSE) {
             drawCards();
 
-            boolean didPlayFirstCard = playCard();
+            boolean didTakeTurn = takeTurn();
 
-            if (!didPlayFirstCard) {
+            if (!didTakeTurn) {
                 outcome = Outcome.LOSE;
                 break;
-            }
-
-            if (deck.size() > 0) {
-                // play two cards while deck still has cards in it
-                boolean didPlaySecondCard = playCard();
-
-                if (!didPlaySecondCard) {
-                    outcome = Outcome.LOSE;
-                    break;
-                }
             }
 
             if (hand.size() <= 6 && deck.size() > 0) {
@@ -54,7 +43,7 @@ public class Game {
         return new Result(outcome, cardsLeft);
     }
 
-    private void prepareDeck() {
+    private void initDeck() {
         ArrayList<Integer> oneThroughNinetyNine = new ArrayList<>(98);
         for (int i = 2; i < 100; i++) {
             oneThroughNinetyNine.add((i));
@@ -66,15 +55,8 @@ public class Game {
     private void initDiscardPiles() {
         for (int i = 0; i < 2; i++) {
             discardPiles.add(new DiscardPile(Direction.UP));
-        }
-
-        for (int i = 0; i < 2; i++) {
             discardPiles.add(new DiscardPile(Direction.DOWN));
         }
-    }
-
-    private void initHand() {
-        hand = new ArrayList<>();
     }
 
     private void drawCards() {
@@ -83,23 +65,34 @@ public class Game {
         }
     }
 
-    private boolean playCard() {
-        CardReport bestPlayPossible = findBestPlayPossible();
+    private boolean takeTurn() {
+        boolean didPlayCard = false;
+        for (int i = 0; i < 2; i++) {
+            CardReport bestPlayPossible = findBestPlayPossible();
 
-        if (bestPlayPossible == null) {
-            return false;
-        } else {
-            // play card into pile
-            Integer cardToPlay = hand.remove(bestPlayPossible.getCardIndex());
-            discardPiles.get(bestPlayPossible.getClosestTo()).discard(cardToPlay);
-            return true;
+            if (bestPlayPossible == null) {
+                outcome = Outcome.LOSE;
+            } else {
+                didPlayCard = true;
+                playCard(bestPlayPossible);
+            }
+
+            // only play one card if deck is out
+            if (deck.size() == 0) {
+                break;
+            }
         }
+
+        return didPlayCard;
+    }
+
+    private void playCard(CardReport bestPlayPossible) {
+        // play card into pile
+        Integer cardToPlay = hand.remove(bestPlayPossible.getCardIndex());
+        discardPiles.get(bestPlayPossible.getClosestTo()).discard(cardToPlay);
     }
 
     private CardReport findBestPlayPossible() {
-        // sort hand
-        hand.sort(Comparator.comparingInt(a -> a));
-
         // generate reports for top card of each discard pile
         List<CardReport> cardReportsOfClosestCardsToEachPile = new ArrayList<>();
         for (int i = 0; i < discardPiles.size(); i++) {
@@ -122,7 +115,7 @@ public class Game {
             }
         }
 
-       return bestPlayPossible;
+        return bestPlayPossible;
     }
 
     private CardReport getCardReportOfDiscardIndexPile(int indexOfDiscardPile) {
@@ -134,8 +127,12 @@ public class Game {
         int howClose = -1;
         boolean isReverse = false;
 
+        // order of preference
+        // 1. can go backwards (in either direction - no preference)
+        // 2. small interval possible (in either direction - no preference)
+
         // left to consider
-        // playing in-between the current card and one that can go backwards
+        // proximity to outer edges?
         // total cards playable in a cluster?
 
         for (int i = 0; i < hand.size(); i++) {
@@ -146,7 +143,7 @@ public class Game {
                     howClose = hand.get(i) - cardToGetCloseTo;
                     isReverse = true;
                     break;
-                } else if (card > cardToGetCloseTo && (indexOfClosestCardFound == -1 || card < indexOfClosestCardFound)) {
+                } else if (card > cardToGetCloseTo && (indexOfClosestCardFound == -1 || card < hand.get(indexOfClosestCardFound))) {
                     indexOfClosestCardFound = i;
                     howClose = hand.get(i) - cardToGetCloseTo;
                 }
@@ -156,7 +153,7 @@ public class Game {
                     howClose = hand.get(i) - cardToGetCloseTo;
                     isReverse = true;
                     break;
-                } else if (card < cardToGetCloseTo && (indexOfClosestCardFound == -1 || card > indexOfClosestCardFound)) {
+                } else if (card < cardToGetCloseTo && (indexOfClosestCardFound == -1 || card > hand.get(indexOfClosestCardFound))) {
                     indexOfClosestCardFound = i;
                     howClose = cardToGetCloseTo - hand.get(i);
                 }
